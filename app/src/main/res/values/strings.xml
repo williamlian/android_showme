@@ -1,4 +1,49 @@
 <resources>
     <string name="app_name">ShowMe</string>
     <string name="action_settings">Settings</string>
+
+    <integer name="grid_view_columns">2</integer>
+    <integer name="result_size">16</integer>
+
+    <string name="setting_save">Save</string>
+    <string name="setting_cancel">Cancel</string>
+    <string name="setting_image_size">Image Size</string>
+    <string name="setting_image_type">Image Type</string>
+    <string name="setting_image_color">Image Color</string>
+    <string name="setting_site_filter">Site Filter</string>
+
+    <string-array name="google_image_client_imgsz">
+        <item>any</item>
+        <item>icon</item>
+        <item>small</item>
+        <item>medium</item>
+        <item>large</item>
+        <item>xlarge</item>
+        <item>xxlarge</item>
+        <item>huge</item>
+    </string-array>
+
+    <string-array name="google_image_client_imgcolor">
+        <item>any</item>
+        <item>black</item>
+        <item>blue</item>
+        <item>brown</item>
+        <item>gray</item>
+        <item>green</item>
+        <item>orange</item>
+        <item>pink</item>
+        <item>purple</item>
+        <item>red</item>
+        <item>teal</item>
+        <item>white</item>
+        <item>yellow</item>
+    </string-array>
+
+    <string-array name="google_image_client_imgtype">
+        <item>any</item>
+        <item>face</item>
+        <item>photo</item>
+        <item>clipart</item>
+        <item>lineart</item>
+    </string-array>
 </resources>
