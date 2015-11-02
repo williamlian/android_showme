@@ -1,5 +1,7 @@
 package com.williamlian.showme;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MenuItemCompat;
@@ -10,28 +12,32 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.etsy.android.grid.StaggeredGridView;
+import com.helper.NetworkHelper;
 import com.williamlian.showme.adaptor.ImageResultAdaptor;
 import com.williamlian.showme.client.GoogleImageSearchClient;
 import com.williamlian.showme.client.model.GoogleImageSearchResult;
 import com.williamlian.showme.model.Setting;
+import com.williamlian.showme.widget.EndlessScrollListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private GoogleImageSearchClient googleImageSearchClient = new GoogleImageSearchClient();
-    private List<GoogleImageSearchResult> images;
+    private ArrayList<GoogleImageSearchResult> images;
     private ImageResultAdaptor imageResultAdaptor;
-    private String lastSearchString;
+    private StaggeredGridView sgv_images;
+    private Setting setting;
+
+    private static final int MAX_PAGE = 8;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +46,68 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        StaggeredGridView sgv_images = (StaggeredGridView)findViewById(R.id.sgv_results);
+        Log.i(this.getClass().getName(),"Creating Main Activity");
 
+        if(!NetworkHelper.isNetworkAvailable(this)) {
+            new MaterialDialog.Builder(this)
+                    .title("No Internet Connection")
+                    .content("No Internet Connection, Please check your network configurations.")
+                    .positiveText("OK")
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog materialDialog, @NonNull DialogAction dialogAction) {
+                            moveTaskToBack(true);
+                        }
+                    })
+                    .show();
+        }
+
+        sgv_images = (StaggeredGridView)findViewById(R.id.sgv_results);
+        setting = Setting.getSetting(this);
         images = new ArrayList<>();
         imageResultAdaptor = new ImageResultAdaptor(this, images);
+        imageResultAdaptor.setMaxSize((MAX_PAGE-1) * GoogleImageSearchClient.MAX_RESULT_SIZE);
+
         sgv_images.setAdapter(imageResultAdaptor);
+        sgv_images.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                GoogleImageSearchResult result = (GoogleImageSearchResult)parent.getItemAtPosition(position);
+                Intent viewImageIntent = new Intent(MainActivity.this, ViewImageActivity.class);
+                viewImageIntent.putExtra("result", result);
+                startActivity(viewImageIntent);
+            }
+        });
+
+        sgv_images.setOnScrollListener(new EndlessScrollListener() {
+            @Override
+            public boolean onLoadMore(int page, int totalItemsCount) {
+                if (page > MAX_PAGE) {
+                    return false;
+                } else {
+                    if(setting.lastSearchString != null) {
+                        singleSearch(setting.lastSearchString, totalItemsCount - 1, setting, true);
+                        return true;
+                    } else {
+                        return  false;
+                    }
+                }
+            }
+        });
+
+        sgv_images.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        setting = Setting.getSetting(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        setting.save();
     }
 
     @Override
@@ -54,6 +117,10 @@ public class MainActivity extends AppCompatActivity {
 
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+        if(setting.lastSearchString != null) {
+            searchView.setQuery(setting.lastSearchString, false);
+        }
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -71,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         searchView.setOnSearchClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((SearchView)v).setQuery(lastSearchString, false);
+                ((SearchView) v).setQuery(setting.lastSearchString, false);
             }
         });
         return super.onCreateOptionsMenu(menu);
@@ -79,42 +146,60 @@ public class MainActivity extends AppCompatActivity {
 
     public void search(String query) {
         if(query == null || query.isEmpty()) {
-            showSearchError(0, "Search Text is Empty");
+            showError("Search Text is Empty");
         } else {
-            Setting setting = Setting.getSetting(this);
-            int resultSize = getResources().getInteger(R.integer.result_size);
-            multiSearch(query, setting, resultSize);
-            lastSearchString = query;
+            singleSearch(query, 0, setting, false);
+            setting.lastSearchString = query;
+            setting.save();
+            sgv_images.setVisibility(View.VISIBLE);
         }
     }
 
     public void search() {
-        search(lastSearchString);
+        search(setting.lastSearchString);
     }
 
-    public void multiSearch(String query, Setting setting, int size) {
-        Log.i(this.getClass().getName(),String.format("Searching google for: %s, result size=%d, setting=%s", query, size, setting));
-        googleImageSearchClient.multiPageSearch(query, size, 0, setting, new GoogleImageSearchClient.GoogleImageSearchResultCallback() {
-            private boolean initial = true;
-            @Override
-            public void onSuccess(List<GoogleImageSearchResult> results) {
-                if (initial) {
-                    imageResultAdaptor.clear();
-                    initial = false;
-                }
-                imageResultAdaptor.addAll(results);
-            }
-
-            @Override
-            public void onFailure(int statusCode, String message) {
-                showSearchError(statusCode, message);
-            }
-        });
+    public void singleSearch(String query, int start, Setting setting, boolean append) {
+        Log.i(this.getClass().getName(),String.format("Searching google for: %s, result start=%d, setting=%s append=%s", query, start, setting,append));
+        googleImageSearchClient.simpleSearch(query, GoogleImageSearchClient.MAX_RESULT_SIZE, start, setting, new SearchResultCallback(imageResultAdaptor,append,this));
     }
 
-    private void showSearchError(int statusCode, String message) {
-        Log.i(this.getClass().getName(),String.format("Error Searching Google: [%d] %s", statusCode, message));
-        Toast.makeText(MainActivity.this, String.format("Error Searching Google: %s", message), Toast.LENGTH_SHORT).show();
+    static class SearchResultCallback implements GoogleImageSearchClient.GoogleImageSearchResultCallback {
+        ImageResultAdaptor imageResultAdaptor;
+        boolean append;
+        Context context;
+        public SearchResultCallback(ImageResultAdaptor adaptor, boolean append, Context context) {
+            this.imageResultAdaptor = adaptor;
+            this.append = append;
+            this.context = context;
+        }
+        @Override
+        public void onSuccess(ArrayList<GoogleImageSearchResult> results) {
+            if(!append) {
+                Log.i(this.getClass().getName(),"Cleaning result adaptor");
+                imageResultAdaptor.clear();
+                imageResultAdaptor.notifyDataSetChanged();
+            }
+            imageResultAdaptor.addAll(results);
+        }
+
+        @Override
+        public void onFailure(int statusCode, String message) {
+            Log.i(this.getClass().getName(), String.format("Error Searching Google: [%d] %s", statusCode, message));
+            MaterialDialog dialog = new MaterialDialog.Builder(context)
+                    .title("Error")
+                    .content(message)
+                    .positiveText("OK")
+                    .show();
+        }
+    }
+
+    private void showError(String message) {
+        new MaterialDialog.Builder(this)
+                .title("Error")
+                .content(message)
+                .positiveText("OK")
+                .show();
     }
 
     @Override
@@ -145,6 +230,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.i(this.getClass().getName(), String.format("Update setting: type=%s size=%s color=%s site=%s",
                                     setting.imageType,setting.imageSize,setting.imageColor,setting.siteFilter));
 
+                            setting.save();
                             search();
                         }
                     })

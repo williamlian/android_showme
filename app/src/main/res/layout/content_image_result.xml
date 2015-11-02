@@ -2,13 +2,30 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="#000"
+              android:padding="@dimen/grid_view_item_padding"
+              android:id="@+id/ll_result_adaptor"
+              android:background="@drawable/item_frame"
               android:orientation="vertical">
 
     <com.williamlian.showme.widget.ResizableImageView
         android:id="@+id/iv_thumbnail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:adjustViewBounds="true"/>
+        android:adjustViewBounds="true"
+        android:layout_marginBottom="@dimen/thumbnail_margin_bottom"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_resolution"
+        android:textSize="@dimen/result_attribute"
+        android:textColor="@color/colorPrimary"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_url"
+        android:textSize="@dimen/result_attribute"
+        android:textColor="@color/colorPrimary"/>
 
 </LinearLayout>

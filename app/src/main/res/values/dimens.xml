@@ -8,4 +8,9 @@
     <dimen name="setting_content_margin">20dp</dimen>
     <dimen name="setting_label_size">16sp</dimen>
     <dimen name="setting_cell_padding">8dp</dimen>
+    <dimen name="result_attribute">10sp</dimen>
+    <dimen name="grid_view_item_padding">5dp</dimen>
+    <dimen name="loading_label_font_size">24sp</dimen>
+    <dimen name="loading_label_small">16sp</dimen>
+    <dimen name="thumbnail_margin_bottom">16dp</dimen>
 </resources>

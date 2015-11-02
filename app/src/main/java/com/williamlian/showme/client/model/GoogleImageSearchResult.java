@@ -3,12 +3,14 @@ package com.williamlian.showme.client.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GoogleImageSearchResult {
+public class GoogleImageSearchResult  implements Serializable{
 
-    private String width;
+    public String width;
 
-    private String height;
+    public String height;
 
     public String imageId;
 
@@ -19,6 +21,8 @@ public class GoogleImageSearchResult {
     private String thumbnailHeight;
 
     public String url;
+
+    public String visibleUrl;
 
     public String title;
 

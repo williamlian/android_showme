@@ -11,6 +11,7 @@
     <string name="setting_image_type">Image Type</string>
     <string name="setting_image_color">Image Color</string>
     <string name="setting_site_filter">Site Filter</string>
+    <string name="reached_last_row">Reached the last row.</string>
 
     <string-array name="google_image_client_imgsz">
         <item>any</item>
@@ -46,4 +47,9 @@
         <item>clipart</item>
         <item>lineart</item>
     </string-array>
+
+    <string name="title_activity_view_image">ViewImageActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="loading_image">Loading Image...</string>
 </resources>

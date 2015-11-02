@@ -15,7 +15,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -25,6 +24,7 @@ import cz.msebera.android.httpclient.Header;
 public class GoogleImageSearchClient {
 
     private static final String BASE_URL = "https://ajax.googleapis.com/ajax/services/search/images";
+    public static final int    MAX_RESULT_SIZE = 8;
 
     // Required Parameter
     private static final String VERSION_KEY = "v";
@@ -34,7 +34,6 @@ public class GoogleImageSearchClient {
 
     //Optional Parameter
     private static final String RESULT_SIZE_KEY = "rsz";
-    private static final int    MAX_RESULT_SIZE = 8;
     private static final String START_KEY       = "start";
     private static final String IMAGE_SIZE_KEY  = "imgsz";
     private static final String SITE_FILTER_KEY = "as_sitesearch";
@@ -116,7 +115,7 @@ public class GoogleImageSearchClient {
     }
 
     public interface GoogleImageSearchResultCallback {
-        void onSuccess(List<GoogleImageSearchResult> results);
+        void onSuccess(ArrayList<GoogleImageSearchResult> results);
         void onFailure(int statusCode, String message);
     }
 
