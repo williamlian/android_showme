@@ -43,6 +43,10 @@ Here's a walkthrough of implemented user stories:
 
 ![Demo](demo.gif)
 
+Demo of Error Handling:
+
+![Demo Error Handling](demo_error_handling.gif)
+
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes

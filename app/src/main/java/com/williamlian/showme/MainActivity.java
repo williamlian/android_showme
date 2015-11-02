@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         sgv_images.setOnScrollListener(new EndlessScrollListener() {
             @Override
             public boolean onLoadMore(int page, int totalItemsCount) {
-                if (page > MAX_PAGE) {
+                if (totalItemsCount >= (MAX_PAGE-1) * GoogleImageSearchClient.MAX_RESULT_SIZE) {
                     return false;
                 } else {
                     if(setting.lastSearchString != null) {
